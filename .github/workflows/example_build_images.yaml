@@ -3,7 +3,7 @@ name: Example Build Image
 on:
   push:
     branches:
-      - "dev"
+      - "prod"
     paths:
       - .github/workflows/example_build_images.yaml
       - "worker/**"
@@ -11,7 +11,7 @@ on:
 env:
   AWS_REGION: us-east-1                 
   ECR_REPOSITORY: voting-app 
-  ENV: "dev"
+  ENV: "prod"
 
 permissions:
   id-token: write

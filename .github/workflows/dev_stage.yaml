@@ -1,0 +1,199 @@
+name: Dev Stage
+on:
+  push:
+    branches:
+      - "dev"
+    paths:
+      - .github/workflows/example_build_images.yaml
+      - "worker/**"
+
+env:
+  AWS_REGION: us-east-1                 
+  ECR_REPOSITORY: voting-app 
+  ENV: "dev"
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  build:
+    name: Build Image Production
+    runs-on: ubuntu-latest
+    environment: Production
+    steps:
+    - name: Checkout Repo
+      uses: actions/checkout@v3
+
+    - name: Configure AWS Credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_KEY }}
+        aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+        aws-region: ${{ env.AWS_REGION }}
+
+    - name: Login to Amazon ECR
+      id: login-ecr
+      uses: aws-actions/amazon-ecr-login@v1
+
+    - name: Build, tag, and push the vote docker image to Amazon ECR Services
+      id: build-vote-image
+      env:
+        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        ECR_REPOSITORY: voting-app
+        VOTE_IMAGE_TAG: vote-${{ env.ENV }}-latest
+        RESULT_IMAGE_TAG: result-${{ env.ENV }}-latest
+        WORKER_IMAGE_TAG: worker-${{ env.ENV }}-latest
+      # Build docker images for vote module and push it to ECR so that it can be deployed to EKS
+      run: |
+        docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$VOTE_IMAGE_TAG --build-arg aws_region=${{ env.AWS_REGION }} --build-arg copy_or_mount="copy" -f vote/Dockerfile ./vote
+        docker push $ECR_REGISTRY/$ECR_REPOSITORY:$VOTE_IMAGE_TAG
+
+        docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$RESULT_IMAGE_TAG --build-arg aws_region=${{ env.AWS_REGION }} --build-arg in_aws="yes" --build-arg copy_or_mount="copy" -f result/Dockerfile ./result
+        docker push $ECR_REGISTRY/$ECR_REPOSITORY:$RESULT_IMAGE_TAG
+        
+        docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$WORKER_IMAGE_TAG --build-arg aws_region=${{ env.AWS_REGION }} --build-arg copy_or_mount="copy" -f worker/Dockerfile ./worker
+        docker push $ECR_REGISTRY/$ECR_REPOSITORY:$WORKER_IMAGE_TAG
+
+    - name: End Build Docker
+      run: echo "Build Success"
+
+  master:
+    name: Example Pull Image on master
+    needs: build
+    runs-on: master
+    steps:
+      - name: Update runner's docker Version, as worker module requires it
+        run: |
+          sudo docker --version
+          sudo usermod -aG docker ec2-user
+
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_KEY }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+  
+      - name: Pull image
+        id: pull-image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: voting-app
+          VOTE_IMAGE_TAG: vote-${{ env.ENV }}-latest
+          RESULT_IMAGE_TAG: result-${{ env.ENV }}-latest
+          WORKER_IMAGE_TAG: worker-${{ env.ENV }}-latest
+        # Build docker images for vote module and push it to ECR so that it can be deployed to EKS
+        run: |
+         docker pull $ECR_REGISTRY/$ECR_REPOSITORY:$WORKER_IMAGE_TAG   
+
+         docker pull $ECR_REGISTRY/$ECR_REPOSITORY:$VOTE_IMAGE_TAG
+          
+         docker pull $ECR_REGISTRY/$ECR_REPOSITORY:$RESULT_IMAGE_TAG
+  node1:
+    name: Example Pull Image on node1
+    runs-on: node1
+    needs: master
+    steps:
+      - name: Update runner's docker Version, as worker module requires it
+        run: |
+          sudo docker --version
+          sudo usermod -aG docker ec2-user
+
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_KEY }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+  
+      - name: Pull image
+        id: pull-image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: voting-app
+          VOTE_IMAGE_TAG: vote-${{ env.ENV }}-latest
+          RESULT_IMAGE_TAG: result-${{ env.ENV }}-latest
+          WORKER_IMAGE_TAG: worker-${{ env.ENV }}-latest
+        # Build docker images for vote module and push it to ECR so that it can be deployed to EKS
+        run: |
+         docker pull $ECR_REGISTRY/$ECR_REPOSITORY:$WORKER_IMAGE_TAG   
+
+         docker pull $ECR_REGISTRY/$ECR_REPOSITORY:$VOTE_IMAGE_TAG
+          
+         docker pull $ECR_REGISTRY/$ECR_REPOSITORY:$RESULT_IMAGE_TAG
+
+  node2:
+    name: Example Pull Image on node2
+    runs-on: node2
+    needs: node1
+    steps:
+      - name: Update runner's docker Version, as worker module requires it
+        run: |
+          sudo docker --version
+          sudo usermod -aG docker ec2-user
+
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_KEY }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+  
+      - name: Pull image
+        id: pull-image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: voting-app
+          VOTE_IMAGE_TAG: vote-${{ env.ENV }}-latest
+          RESULT_IMAGE_TAG: result-${{ env.ENV }}-latest
+          WORKER_IMAGE_TAG: worker-${{ env.ENV }}-latest
+        # Build docker images for vote module and push it to ECR so that it can be deployed to EKS
+        run: |
+         docker pull $ECR_REGISTRY/$ECR_REPOSITORY:$WORKER_IMAGE_TAG   
+
+         docker pull $ECR_REGISTRY/$ECR_REPOSITORY:$VOTE_IMAGE_TAG
+          
+         docker pull $ECR_REGISTRY/$ECR_REPOSITORY:$RESULT_IMAGE_TAG
+
+  deploy:  
+    name: Example Deploy Application Into Docker Swarm
+    needs: [build,master,node1,node2]
+    runs-on: master
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Deploy Application images to Docker Swarm
+        run: |
+          sudo docker node ls
+          sudo docker service ls
+          sudo docker stack ls
+          sudo docker stack rm stackdemo
+          sleep 30
+          sudo docker stack deploy --compose-file docker-stack.yml stackdemo
