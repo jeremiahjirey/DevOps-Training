@@ -1,4 +1,4 @@
-name: Example Deploy Application into Docker Swarm
+name: Example Deploy Application Into Docker Swarm
 on:
   push:
     branches:
