@@ -19,7 +19,8 @@ jobs:
     steps:
       - name: Update runner's docker Version, as worker module requires it
         run: |
-          docker --version
+          sudo docker --version
+          sudo usermod -aG docker ec2-user
 
       - name: Checkout
         uses: actions/checkout@v3
@@ -46,11 +47,11 @@ jobs:
           WORKER_IMAGE_TAG: worker-${{ env.ENV }}-latest
         # Build docker images for vote module and push it to ECR so that it can be deployed to EKS
         run: |
-          sudo docker pull $ECR_REGISTRY/$ECR_REPOSITORY:$WORKER_IMAGE_TAG   
+         docker pull $ECR_REGISTRY/$ECR_REPOSITORY:$WORKER_IMAGE_TAG   
 
-          sudo docker pull $ECR_REGISTRY/$ECR_REPOSITORY:$VOTE_IMAGE_TAG
+         docker pull $ECR_REGISTRY/$ECR_REPOSITORY:$VOTE_IMAGE_TAG
           
-          sudo docker pull $ECR_REGISTRY/$ECR_REPOSITORY:$RESULT_IMAGE_TAG
+         docker pull $ECR_REGISTRY/$ECR_REPOSITORY:$RESULT_IMAGE_TAG
 
   node2:
     name: Example Pull Image on node2
@@ -59,7 +60,8 @@ jobs:
     steps:
       - name: Update runner's docker Version, as worker module requires it
         run: |
-          docker --version
+          sudo docker --version
+          sudo usermod -aG docker ec2-user
 
       - name: Checkout
         uses: actions/checkout@v3
@@ -86,11 +88,11 @@ jobs:
           WORKER_IMAGE_TAG: worker-${{ env.ENV }}-latest
         # Build docker images for vote module and push it to ECR so that it can be deployed to EKS
         run: |
-          sudo docker pull $ECR_REGISTRY/$ECR_REPOSITORY:$WORKER_IMAGE_TAG   
+          docker pull $ECR_REGISTRY/$ECR_REPOSITORY:$WORKER_IMAGE_TAG   
 
-          sudo docker pull $ECR_REGISTRY/$ECR_REPOSITORY:$VOTE_IMAGE_TAG
+          docker pull $ECR_REGISTRY/$ECR_REPOSITORY:$VOTE_IMAGE_TAG
           
-          sudo docker pull $ECR_REGISTRY/$ECR_REPOSITORY:$RESULT_IMAGE_TAG
+          docker pull $ECR_REGISTRY/$ECR_REPOSITORY:$RESULT_IMAGE_TAG
           
  
 
