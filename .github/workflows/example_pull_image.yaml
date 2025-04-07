@@ -3,8 +3,8 @@ on:
   push:
     branches:
       - "dev"
-    paths:
-      - .github/workflows/example_deploy_docker.yaml
+
+      
 
 env:
   AWS_REGION : "us-east-1"
