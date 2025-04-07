@@ -1,4 +1,4 @@
-name: Example Sent notification to email
+name: Example Sent Notification To Email
 on:
   push:
     branches:
