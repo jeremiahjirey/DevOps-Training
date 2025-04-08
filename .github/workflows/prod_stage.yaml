@@ -1,0 +1,152 @@
+name: Example Deploy to Amazon ECS
+
+on:
+  push:
+    branches:
+      - "main"
+    paths:
+      - .github/workflows/example_deploy_ecs.yaml
+      - "worker/**"
+
+env:
+  AWS_REGION: us-east-1                 
+  ECR_REPOSITORY: voting-app
+  ECS_SERVICE_VOTE: vote-service
+  ECS_SERVICE_RESULT: result-service
+  ECS_SERVICE_WORKER: worker-service          
+  ECS_CLUSTER: lks-voting-cluster
+  VOTE_TASK_DEFINITION: vote/task-definition.json
+  RESULT_TASK_DEFINITION: result/task-definition.json
+  WORKER_TASK_DEFINITION: worker/task-definition.json
+  VOTE_CONTAINER_NAME: vote-container
+  RESULT_CONTAINER_NAME: result-container
+  WORKER_CONTAINER_NAME: worker-container
+  ENV: "prod"
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  build:
+    name: Build Image Production
+    runs-on: ubuntu-latest
+    environment: Production
+    steps:
+    - name: Checkout Repo
+      uses: actions/checkout@v3
+
+    - name: Configure AWS Credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_KEY }}
+        aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+        aws-region: ${{ env.AWS_REGION }}
+
+    - name: Login to Amazon ECR
+      id: login-ecr
+      uses: aws-actions/amazon-ecr-login@v1
+
+    - name: Build, tag, and push the vote docker image to Amazon ECR Services
+      id: build-vote-image
+      env:
+        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        ECR_REPOSITORY: voting-app
+        VOTE_IMAGE_TAG: vote-${{ env.ENV }}-latest
+        RESULT_IMAGE_TAG: result-${{ env.ENV }}-latest
+        WORKER_IMAGE_TAG: worker-${{ env.ENV }}-latest
+      # Build docker images for vote module and push it to ECR so that it can be deployed to EKS
+      run: |
+        docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$VOTE_IMAGE_TAG --build-arg aws_region=${{ env.AWS_REGION }} --build-arg copy_or_mount="copy" -f vote/Dockerfile ./vote
+        docker push $ECR_REGISTRY/$ECR_REPOSITORY:$VOTE_IMAGE_TAG
+
+        docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$RESULT_IMAGE_TAG --build-arg aws_region=${{ env.AWS_REGION }} --build-arg in_aws="yes" --build-arg copy_or_mount="copy" -f result/Dockerfile ./result
+        docker push $ECR_REGISTRY/$ECR_REPOSITORY:$RESULT_IMAGE_TAG
+        
+        docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$WORKER_IMAGE_TAG --build-arg aws_region=${{ env.AWS_REGION }} --build-arg copy_or_mount="copy" -f worker/Dockerfile ./worker
+        docker push $ECR_REGISTRY/$ECR_REPOSITORY:$WORKER_IMAGE_TAG
+
+    - name: End Build Docker
+      run: echo "Build Success"
+
+  deploy:
+    name: Deploy Application to Production
+    needs: build
+    runs-on: ubuntu-latest
+    environment: Production
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_KEY }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Set Variable
+        id: set-vars
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          VOTE_IMAGE_TAG: vote-${{ env.ENV }}-latest
+          RESULT_IMAGE_TAG: result-${{ env.ENV }}-latest
+          WORKER_IMAGE_TAG: worker-${{ env.ENV }}-latest
+        run: |
+          echo "::set-output name=vote_image::$ECR_REGISTRY/$ECR_REPOSITORY:$VOTE_IMAGE_TAG"
+          echo "::set-output name=result_image::$ECR_REGISTRY/$ECR_REPOSITORY:$RESULT_IMAGE_TAG"
+          echo "::set-output name=worker_image::$ECR_REGISTRY/$ECR_REPOSITORY:$WORKER_IMAGE_TAG"
+
+      - name: Fill in the new image ID in the Amazon ECS task definition (VOTE)
+        id: task-def-vote
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        with:
+          task-definition: ${{ env.VOTE_TASK_DEFINITION }}
+          container-name: ${{ env.VOTE_CONTAINER_NAME }}
+          image: ${{ steps.set-vars.outputs.vote_image }}
+      
+      - name: Fill in the new image ID in the Amazon ECS task definition (Result)
+        id: task-def-result
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        with:
+          task-definition: ${{ env.RESULT_TASK_DEFINITION }}
+          container-name: ${{ env.RESULT_CONTAINER_NAME }}
+          image: ${{ steps.set-vars.outputs.result_image }}
+
+      - name: Fill in the new image ID in the Amazon ECS task definition (Worker)
+        id: task-def-worker
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        with:
+          task-definition: ${{ env.WORKER_TASK_DEFINITION }}
+          container-name: ${{ env.WORKER_CONTAINER_NAME }}
+          image: ${{ steps.set-vars.outputs.worker_image }}
+
+      - name: Deploy Amazon ECS task definition Vote
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+        with:
+          task-definition: ${{ steps.task-def-vote.outputs.task-definition }}
+          service: ${{ env.ECS_SERVICE_VOTE }}
+          cluster: ${{ env.ECS_CLUSTER }}
+          wait-for-service-stability: true
+
+      - name: Deploy Amazon ECS task definition Result
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+        with:
+          task-definition: ${{ steps.task-def-result.outputs.task-definition }}
+          service: ${{ env.ECS_SERVICE_RESULT }}
+          cluster: ${{ env.ECS_CLUSTER }}
+          wait-for-service-stability: true
+
+      - name: Deploy Amazon ECS task definition Worker
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+        with:
+          task-definition: ${{ steps.task-def-worker.outputs.task-definition }}
+          service: ${{ env.ECS_SERVICE_WORKER }}
+          cluster: ${{ env.ECS_CLUSTER }}
+          wait-for-service-stability: true
