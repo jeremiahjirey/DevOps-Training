@@ -12,7 +12,7 @@ env:
   AWS_REGION: us-east-1                 
   ECR_REPOSITORY: voting-app
   ECS_SERVICE_VOTE: vote-service
-  ECS_SERVICE_RESULT: result-services
+  ECS_SERVICE_RESULT: result-service
   ECS_SERVICE_WORKER: worker-service          
   ECS_CLUSTER: lks-voting-cluster
   VOTE_TASK_DEFINITION: vote/task-definition.json
