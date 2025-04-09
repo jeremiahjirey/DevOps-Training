@@ -61,8 +61,8 @@ jobs:
 
   master:
     name: Example Pull Image on master
-    needs: build
     runs-on: master
+    needs: build
     steps:
       - name: Update runner's docker Version, as worker module requires it
         run: |
@@ -183,7 +183,7 @@ jobs:
 
   deploy:  
     name: Example Deploy Application Into Docker Swarm
-    needs: [build,master,node1,node2]
+    needs: [master,node1,node2]
     runs-on: master
     steps:
       - name: Checkout
