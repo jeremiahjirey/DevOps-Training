@@ -37,7 +37,7 @@ jobs:
       id: login-ecr
       uses: aws-actions/amazon-ecr-login@v1
 
-    - name: Build, tag, and push the vote docker image to Amazon ECR Services
+    - name: Build, Tag, and push the vote docker image to Amazon ECR Services
       id: build-vote-image
       env:
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
