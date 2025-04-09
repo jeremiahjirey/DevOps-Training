@@ -20,7 +20,7 @@ permissions:
 
 jobs:
   build:
-    name: Build application images from source code and store them in the Amazon ECR 
+    name: Build Application images from source code and store them in the Amazon ECR 
     runs-on: ubuntu-latest
     steps:
       - name: Update runner's docker Version, as worker module requires it
