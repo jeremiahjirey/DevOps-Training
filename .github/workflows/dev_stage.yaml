@@ -54,7 +54,6 @@ jobs:
         id: build-vote-image
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          ECR_REPOSITORY: ws-apps
           VOTE_IMAGE_TAG: vote-${{ env.ENV }}-latest
           RESULT_IMAGE_TAG: result-${{ env.ENV }}-latest
           WORKER_IMAGE_TAG: worker-${{ env.ENV }}-latest
