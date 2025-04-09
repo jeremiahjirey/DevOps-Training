@@ -22,7 +22,7 @@ services:
       - backend
 
   vote:
-    image: 225783006306.dkr.ecr.us-east-1.amazonaws.com/voting-app:vote-dev-latest
+    image: 878046174581.dkr.ecr.us-east-1.amazonaws.com/voting-app:vote-dev-latest
     ports:
       - 5000:80
     networks:
@@ -31,7 +31,7 @@ services:
       replicas: 3
 
   result:
-    image: 225783006306.dkr.ecr.us-east-1.amazonaws.com/voting-app:result-dev-latest
+    image: 878046174581.dkr.ecr.us-east-1.amazonaws.com/voting-app:result-dev-latest
     ports:
       - 5001:80
     networks:
@@ -40,7 +40,7 @@ services:
       replicas: 3
 
   worker:
-    image: 225783006306.dkr.ecr.us-east-1.amazonaws.com/voting-app:worker-dev-latest
+    image: 878046174581.dkr.ecr.us-east-1.amazonaws.com/voting-app:worker-dev-latest
     networks:
       - frontend
       - backend
