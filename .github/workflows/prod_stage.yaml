@@ -128,7 +128,7 @@ jobs:
           image: ${{ steps.set-vars.outputs.worker_image }}
 
       - name: Deploy Amazon ECS task definition Vote
-        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v2
         with:
           task-definition: ${{ steps.task-def-vote.outputs.task-definition }}
           service: ${{ env.ECS_SERVICE_VOTE }}
@@ -136,7 +136,7 @@ jobs:
           wait-for-service-stability: true
 
       - name: Deploy Amazon ECS task definition Result
-        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v2
         with:
           task-definition: ${{ steps.task-def-result.outputs.task-definition }}
           service: ${{ env.ECS_SERVICE_RESULT }}
@@ -144,7 +144,7 @@ jobs:
           wait-for-service-stability: true
 
       - name: Deploy Amazon ECS task definition Worker
-        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v2
         with:
           task-definition: ${{ steps.task-def-worker.outputs.task-definition }}
           service: ${{ env.ECS_SERVICE_WORKER }}
