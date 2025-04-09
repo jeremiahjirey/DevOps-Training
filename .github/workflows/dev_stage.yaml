@@ -3,7 +3,7 @@ name: Deploy Application into Docker Swarm
 on:
   push:
     branches:
-      - "ws-dev"
+      - "dev"
     paths:
       - .github/workflows/dev_stage.yaml
       - docker-stack.yaml
