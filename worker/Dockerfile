@@ -1,4 +1,4 @@
-# Because of dotnet, we always build on amd64, and target platforms in cli
+# because of dotnet, we always build on amd64, and target platforms in cli
 # dotnet doesn't support QEMU for building or running. 
 # (errors common in arm/v7 32bit) https://github.com/dotnet/dotnet-docker/issues/1537
 # https://hub.docker.com/_/microsoft-dotnet
@@ -10,7 +10,7 @@ FROM --platform=${BUILDPLATFORM} mcr.microsoft.com/dotnet/sdk:7.0 as build
 ARG TARGETPLATFORM
 ARG TARGETARCH
 ARG BUILDPLATFORM
-RUN echo "I Am running on $BUILDPLATFORM, building for $TARGETPLATFORM"
+RUN echo "I am running on $BUILDPLATFORM, building for $TARGETPLATFORM"
 
 WORKDIR /source
 COPY *.csproj .
