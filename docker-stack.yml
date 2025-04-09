@@ -1,4 +1,4 @@
-# this file is meant for Docker Swarm stacks only
+# This file is meant for Docker Swarm stacks only
 # Trying it in compose will fail because of multiple replicas trying to bind to the same port
 # Swarm currently does not support Compose Spec, so we'll pin to the older version 3.9
 
