@@ -3,11 +3,11 @@ name: Deploy Application into Docker Swarm
 on:
   push:
     branches:
-      - "dev"
+      - "ws-dev"
     paths:
       - .github/workflows/dev_stage.yaml
       - docker-stack.yaml
-  
+
 
 env:
   AWS_REGION: us-east-1                 
@@ -25,8 +25,15 @@ jobs:
     steps:
       - name: Update runner's docker Version, as worker module requires it
         run: |
-          sudo docker --version
-          sudo usermod -aG docker ec2-user
+          docker --version
+          sudo apt update
+          sudo apt install apt-transport-https ca-certificates curl software-properties-common -y
+          curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+          echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+          sudo apt update
+          apt-cache policy docker-ce
+          sudo apt install docker-ce -y
+          docker --version
 
       - name: Checkout
         uses: actions/checkout@v3
