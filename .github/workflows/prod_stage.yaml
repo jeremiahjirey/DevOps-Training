@@ -3,7 +3,7 @@ name: Example Deploy to Amazon ECS
 on:
   push:
     branches:
-      - "main"
+      - "prod"
     paths:
       - .github/workflows/example_deploy_ecs.yaml
       - "worker/**"
