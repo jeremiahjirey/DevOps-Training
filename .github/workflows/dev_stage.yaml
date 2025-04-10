@@ -89,7 +89,7 @@ jobs:
           aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
           aws-region: ${{ env.AWS_REGION }}
           
-      - name: Login to Amazon ECR
+      - name: Login To Amazon ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
   
