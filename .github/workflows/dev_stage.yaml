@@ -1,4 +1,4 @@
-name: Deploy Application into Docker Swarm 
+name: Deploy Application into Docker Swarm Dev
 
 on:
   push:
