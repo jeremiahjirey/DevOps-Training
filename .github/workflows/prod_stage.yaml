@@ -1,4 +1,4 @@
-name: Deploy Finall App
+name: Deploy Finall App 2
 
 on:
   push:
