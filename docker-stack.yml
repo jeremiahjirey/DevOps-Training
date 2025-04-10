@@ -22,7 +22,7 @@ services:
       - backend
 
   vote:
-    image: 878046174581.dkr.ecr.us-east-1.amazonaws.com/voting-app:vote-dev-latest
+    image: 8878046174581.dkr.ecr.us-east-1.amazonaws.com/voting-app:vote-dev-latest
     ports:
       - 5000:80
     networks:
