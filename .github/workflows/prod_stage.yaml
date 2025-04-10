@@ -151,22 +151,4 @@ jobs:
           cluster: ${{ env.ECS_CLUSTER }}
           wait-for-service-stability: true
 
-  notif:
-     name: Sent Notification
-     needs: deploy
-     runs-on: ubuntu-latest
-     environment: Production
-     steps:    
-            - name: Configure AWS Credentials
-              uses: aws-actions/configure-aws-credentials@v1
-              with:
-                aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }}
-                aws-secret-access-key: ${{ secrets.AWS_SECRET_KEY }}
-                aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
-                aws-region: ${{ env.AWS_REGION }}
-        
-            - name: Publish Message To SNS Subscribers
-              env:
-                TOPIC_ARN: ${{ secrets.AWS_SNS_ARN }}
-              run: aws sns publish --topic-arn $TOPIC_ARN --subject "Hello, from Indonesia" --message "New Version Is Released"
-                     
+  
