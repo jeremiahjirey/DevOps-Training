@@ -16,8 +16,8 @@ namespace Worker
         {
             try
             {
-                var pgsql = OpenDbConnection("Server=voting-app.cpfk01jink5h.us-east-1.rds.amazonaws.com;Username=postgres;Password=postgres;Database=lks_db");
-                var redisConn = OpenRedisConnection("master.lks-redis.iqjopm.use1.cache.amazonaws.com:6379");
+                var pgsql = OpenDbConnection("Server=db;Username=postgres;Password=postgres;");
+                var redisConn = OpenRedisConnection("redis");
                 var redis = redisConn.GetDatabase();
 
                 // Keep alive is not implemented in Npgsql yet. This workaround was recommended:
@@ -46,7 +46,7 @@ namespace Worker
                         if (!pgsql.State.Equals(System.Data.ConnectionState.Open))
                         {
                             Console.WriteLine("Reconnecting DB");
-                            pgsql = OpenDbConnection("Server=voting-app.cpfk01jink5h.us-east-1.rds.amazonaws.com;Username=postgres;Password=postgres;Database=lks_db");
+                            pgsql = OpenDbConnection("Server=db;Username=postgres;Password=postgres;");
                         }
                         else
                         { // Normal +1 vote requested
