@@ -1,10 +1,12 @@
 {
-    "taskDefinitionArn": "arn:aws:ecs:us-east-1:878046174581:task-definition/lks-td-worker:1",
+    "taskDefinitionArn": "arn:aws:ecs:us-east-1:878046174581:task-definition/lks-td-worker:2",
     "containerDefinitions": [
         {
             "name": "worker-container",
             "image": "878046174581.dkr.ecr.us-east-1.amazonaws.com/voting-app",
-            "cpu": 0,
+            "cpu": 1024,
+            "memory": 3072,
+            "memoryReservation": 1024,
             "portMappings": [],
             "essential": true,
             "environment": [],
@@ -31,7 +33,7 @@
     "taskRoleArn": "arn:aws:iam::878046174581:role/LabRole",
     "executionRoleArn": "arn:aws:iam::878046174581:role/LabRole",
     "networkMode": "awsvpc",
-    "revision": 1,
+    "revision": 2,
     "volumes": [],
     "status": "ACTIVE",
     "requiresAttributes": [
@@ -49,6 +51,9 @@
         },
         {
             "name": "com.amazonaws.ecs.capability.docker-remote-api.1.28"
+        },
+        {
+            "name": "com.amazonaws.ecs.capability.docker-remote-api.1.21"
         },
         {
             "name": "com.amazonaws.ecs.capability.task-iam-role"
@@ -80,7 +85,7 @@
         "cpuArchitecture": "X86_64",
         "operatingSystemFamily": "LINUX"
     },
-    "registeredAt": "2025-04-09T08:51:27.411Z",
+    "registeredAt": "2025-04-10T01:04:19.157Z",
     "registeredBy": "arn:aws:sts::878046174581:assumed-role/voclabs/user3997902=106073-80",
     "tags": []
 }
